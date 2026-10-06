@@ -21,23 +21,32 @@ class TerraformParser:
         """
         changes = []
         
-        # Split into resource blocks
-        resource_blocks = re.split(r'resource "aws_iam', diff_content)
+        # Find all resource blocks (handles aws_iam_role_policy and similar)
+        resource_pattern = r'resource "aws_iam[a-z_]*" "([^"]+)"'
+        resources = re.finditer(resource_pattern, diff_content)
         
-        for block in resource_blocks[1:]:  # Skip the first empty split
-            role_name = TerraformParser._extract_role_name(block)
-            if not role_name:
-                continue
+        for resource_match in resources:
+            role_name = resource_match.group(1)
+            
+            # Get the section for this resource - find from start to next resource or end
+            start = resource_match.start()
+            next_resource = re.search(r'\nresource "', diff_content[start + 10:])
+            if next_resource:
+                end = start + 10 + next_resource.start()
+            else:
+                end = len(diff_content)
+            
+            resource_section = diff_content[start:end]
             
             change = IAMChange(role_name=role_name)
             
-            # Parse added permissions
-            added_perms = TerraformParser._extract_permissions(block, added=True)
-            change.permissions_added = added_perms
-            
-            # Parse removed permissions
-            removed_perms = TerraformParser._extract_permissions(block, removed=True)
+            # Parse removed permissions (lines starting with -)
+            removed_perms = TerraformParser._extract_permissions(resource_section, removed=True)
             change.permissions_removed = removed_perms
+            
+            # Parse added permissions (lines starting with +)
+            added_perms = TerraformParser._extract_permissions(resource_section, added=True)
+            change.permissions_added = added_perms
             
             if added_perms or removed_perms:
                 changes.append(change)
@@ -63,26 +72,37 @@ class TerraformParser:
         """Extract IAM permissions from a block."""
         permissions = []
         
-        # Pattern for actions
-        action_pattern = r'actions\s*=\s*\[(.*?)\]'
+        # Split into lines
+        lines = block.split('\n')
         
-        if added:
-            # Look for + lines
-            lines = [line for line in block.split('\n') if line.strip().startswith('+')]
-        elif removed:
-            # Look for - lines
-            lines = [line for line in block.split('\n') if line.strip().startswith('-')]
-        else:
-            lines = block.split('\n')
-        
-        for line in lines:
-            # Extract action strings
-            if '"s3:' in line or '"iam:' in line or '"ec2:' in line:
-                action_matches = re.findall(r'"([a-z0-9:*]+)"', line)
-                for action in action_matches:
-                    # Extract resource
-                    resource_match = re.search(r'arn:aws:[a-z0-9:*/-]+', line)
-                    resource = resource_match.group(0) if resource_match else "*"
+        for i, line in enumerate(lines):
+            # Check if this is a removed or added line
+            is_removed_line = line.lstrip().startswith('-')
+            is_added_line = line.lstrip().startswith('+')
+            
+            # Match type
+            if removed and not is_removed_line:
+                continue
+            if added and not is_added_line:
+                continue
+            
+            # Check for Actions/actions field
+            if 'Actions' not in line and 'actions' not in line:
+                continue
+            
+            # Extract all quoted strings (these are actions)
+            action_matches = re.findall(r'"([^"]+)"', line)
+            
+            for action in action_matches:
+                if action and ':' in action:  # S3:GetObject format
+                    # Look for resource in nearby lines
+                    resource = "*"
+                    for j in range(max(0, i-5), min(len(lines), i+5)):
+                        if 'Resource' in lines[j] or 'resource' in lines[j]:
+                            res_match = re.search(r'arn:aws:[a-z0-9:*/-]+', lines[j])
+                            if res_match:
+                                resource = res_match.group(0)
+                                break
                     
                     permissions.append(IAMPermission(
                         action=action,

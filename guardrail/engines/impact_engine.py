@@ -23,8 +23,13 @@ class ImpactAssessmentEngine:
         overall_impact = ImpactAssessmentEngine._calculate_overall_impact(impacts)
         confidence = ImpactAssessmentEngine._calculate_confidence(impacts)
         
-        # Determine if safe to deploy
+        # Determine if safe to deploy - HIGH or CRITICAL impact means NOT safe
         safe_to_deploy = overall_impact not in [ImpactLevel.HIGH, ImpactLevel.CRITICAL]
+        
+        # Also if there are production impacts at all, it's not safe without migration
+        production_impacts = [i for i in impacts if i.service.environment == "production"]
+        if production_impacts and overall_impact in [ImpactLevel.HIGH, ImpactLevel.CRITICAL]:
+            safe_to_deploy = False
         
         # Generate recommendations
         recommendations = ImpactAssessmentEngine._generate_recommendations(
