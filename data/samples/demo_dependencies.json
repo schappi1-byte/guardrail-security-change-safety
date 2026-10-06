@@ -4,25 +4,31 @@
       "name": "billing-api",
       "namespace": "prod",
       "environment": "production",
-      "role_arn": "arn:aws:iam::123456789012:role/prod-app-reader",
+      "role_arn": "arn:aws:iam::123456789012:role/prod_app_reader",
       "service_account": "billing-api-sa",
-      "roles": ["prod-app-reader"]
+      "roles": [
+        "prod_app_reader"
+      ]
     },
     {
       "name": "invoice-worker",
       "namespace": "prod",
       "environment": "production",
-      "role_arn": "arn:aws:iam::123456789012:role/prod-app-reader",
+      "role_arn": "arn:aws:iam::123456789012:role/prod_app_reader",
       "service_account": "invoice-worker-sa",
-      "roles": ["prod-app-reader"]
+      "roles": [
+        "prod_app_reader"
+      ]
     },
     {
       "name": "reporting-job",
       "namespace": "staging",
       "environment": "staging",
-      "role_arn": "arn:aws:iam::123456789012:role/prod-app-reader",
+      "role_arn": "arn:aws:iam::123456789012:role/prod_app_reader",
       "service_account": "reporting-job-sa",
-      "roles": ["prod-app-reader"]
+      "roles": [
+        "prod_app_reader"
+      ]
     }
   ],
   "usage_evidence": {
