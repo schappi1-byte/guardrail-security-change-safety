@@ -1,0 +1,60 @@
+{
+  "services": [
+    {
+      "name": "billing-api",
+      "namespace": "prod",
+      "environment": "production",
+      "role_arn": "arn:aws:iam::123456789012:role/prod-app-reader",
+      "service_account": "billing-api-sa",
+      "roles": ["prod-app-reader"]
+    },
+    {
+      "name": "invoice-worker",
+      "namespace": "prod",
+      "environment": "production",
+      "role_arn": "arn:aws:iam::123456789012:role/prod-app-reader",
+      "service_account": "invoice-worker-sa",
+      "roles": ["prod-app-reader"]
+    },
+    {
+      "name": "reporting-job",
+      "namespace": "staging",
+      "environment": "staging",
+      "role_arn": "arn:aws:iam::123456789012:role/prod-app-reader",
+      "service_account": "reporting-job-sa",
+      "roles": ["prod-app-reader"]
+    }
+  ],
+  "usage_evidence": {
+    "billing-api": [
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::prod-billing-data/*",
+        "count": 143,
+        "last_seen": "2024-10-06T02:07:00Z",
+        "date_range": "last 7 days",
+        "confidence": "high"
+      }
+    ],
+    "invoice-worker": [
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::prod-billing-data/*",
+        "count": 87,
+        "last_seen": "2024-10-05T15:30:00Z",
+        "date_range": "last 7 days",
+        "confidence": "high"
+      }
+    ],
+    "reporting-job": [
+      {
+        "action": "s3:GetObject",
+        "resource": "arn:aws:s3:::prod-billing-data/*",
+        "count": 12,
+        "last_seen": "2024-10-04T22:00:00Z",
+        "date_range": "last 7 days",
+        "confidence": "high"
+      }
+    ]
+  }
+}

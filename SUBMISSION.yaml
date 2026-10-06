@@ -1,0 +1,207 @@
+---
+# Guardrail Security Change Safety Agent
+# CyberAgents Exchange Submission Metadata
+
+type: agent
+name: Guardrail
+short_name: guardrail-security-change-safety
+version: 1.0.0
+status: active
+
+# One-line description (appears in search results)
+tagline: Know what your security changes will break before you deploy them.
+
+# Full description
+description: |
+  Guardrail is a dependency-aware security change impact agent that identifies the real-world 
+  consequences of security changes before they reach production. It analyzes infrastructure 
+  dependencies, permissions, and observed usage patterns to determine what a change could break, 
+  provides evidence for each affected workload or service, and recommends a safer way to 
+  implement the change.
+
+  The problem it solves: Security engineers regularly deploy IAM policy and access control changes 
+  without knowing what services will break. They either over-privilege (to avoid breakage) or 
+  accidentally break production deployments.
+
+  Guardrail traces dependencies from IAM roles through service accounts to workloads, correlates 
+  against CloudTrail usage evidence, and produces a security change impact report with:
+  - Affected services (production vs. staging)
+  - Evidence of actual usage
+  - Impact confidence levels
+  - Step-by-step safer rollout plans
+
+# Key features
+features:
+  - Evidence-based impact assessment (not guesses)
+  - Production vs. staging environment awareness
+  - Confidence levels for each impact claim
+  - Safe rollout recommendations
+  - GitHub PR integration
+  - CloudTrail usage evidence
+  - IAM role dependency tracing
+  - Kubernetes service account support
+
+# Search tags
+tags:
+  - security
+  - iam
+  - terraform
+  - infrastructure
+  - change-management
+  - risk-assessment
+  - aws
+  - dependency-analysis
+  - cloudtrail
+  - remediation
+
+# Security domains (select from Exchange vocabulary)
+domains:
+  - Exposure Management
+  - Remediation
+
+# Runtime and framework
+framework: Python 3.8+
+runtime: Python
+language: python
+
+# What platforms/services does it integrate with?
+integrations:
+  - AWS
+  - Terraform
+  - GitHub
+  - CloudTrail
+  - Kubernetes
+  - AWS IAM
+
+# Usage/invocation
+usage: |
+  1. Provide a Terraform change diff or IAM policy change
+  2. Provide a dependency configuration (services, roles, usage patterns)
+  3. Guardrail analyzes and produces an impact report
+  4. Use the report to make safer change decisions
+
+  Example:
+  ```python
+  from guardrail.agent import GuardrailAgent
+  
+  agent = GuardrailAgent()
+  report = agent.analyze_terraform_change(
+    change_id="pr-1234",
+    terraform_diff=diff_content,
+    dependency_config=config
+  )
+  
+  pr_comment = agent.format_pr_comment(report)
+  ```
+
+# Input types
+input_types:
+  - terraform_diff
+  - iam_policy_diff
+  - json_dependency_config
+  - github_pr
+
+# Output types
+output_types:
+  - security_change_impact_report
+  - github_pr_comment
+  - structured_json
+
+# Example use case
+example: |
+  A security engineer opens a PR that removes s3:GetObject from a shared IAM role.
+  
+  Guardrail automatically:
+  - Finds all services using this role
+  - Checks CloudTrail and sees billing-api and invoice-worker actively use this permission
+  - Identifies them as production workloads
+  - Flags this as HIGH IMPACT
+  - Recommends: create new role, migrate services, verify access, then remove permission
+  
+  Output: GitHub PR comment with evidence and step-by-step migration plan.
+
+# Compatibility
+compatible_with:
+  - AWS
+  - Kubernetes
+  - Terraform
+  - GitHub
+
+# Repository
+repository:
+  url: https://github.com/schappi1-byte/guardrail-security-change-safety
+  type: github
+  branch: main
+
+# Author/Contact
+author:
+  name: Schappi
+  github: schappi1-byte
+
+# License
+license: MIT
+
+# Installation
+installation: |
+  Option 1: Clone to global skills directory
+  ```bash
+  git clone https://github.com/schappi1-byte/guardrail-security-change-safety.git ~/.claude/skills/guardrail
+  ```
+  
+  Option 2: Use as Python module
+  ```bash
+  pip install -e .
+  ```
+
+# Dependencies
+dependencies:
+  - python: ">=3.8"
+  - boto3: "AWS SDK for CloudTrail and IAM"
+  - dataclasses: "for data models"
+
+# Known limitations
+limitations:
+  - CloudTrail integration requires AWS credentials
+  - Confidence levels depend on usage data availability
+  - Supports AWS IAM; multi-cloud support in roadmap
+  - Kubernetes integration optional
+
+# Roadmap
+roadmap:
+  - CloudTrail auto-integration
+  - Cost impact estimation
+  - Multi-cloud support (Azure, GCP)
+  - Advanced Kubernetes RBAC analysis
+  - Automated safe rollout orchestration
+  - Slack/Teams notifications
+  - Historical impact correlation
+
+# Testing
+testing: |
+  Includes unit tests and integration tests:
+  ```bash
+  pytest tests/
+  ```
+  
+  Demo scenario with sample Terraform change and CloudTrail data included.
+
+# Support
+support: |
+  GitHub Issues: https://github.com/schappi1-byte/guardrail-security-change-safety/issues
+  Documentation: See README.md and docs/ directory
+
+# Vulnerability reporting
+security_contact: Email security issue reports privately
+
+# Keywords for discoverability
+keywords:
+  - security change management
+  - iam policy analysis
+  - infrastructure change safety
+  - dependency impact assessment
+  - terraform security
+  - aws iam
+  - cloudtrail analysis
+  - risk assessment
+  - change remediation
+  - safe rollout planning
